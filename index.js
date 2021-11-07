@@ -2,7 +2,11 @@ import Lifx from 'node-lifx-lan';
 import scheduler from 'node-schedule';
 import pino from 'pino';
 
-const logger = pino();
+const logger = pino({
+  transport: {
+    target: 'pino-pretty',
+  },
+});
 
 class Rule extends scheduler.RecurrenceRule {
   constructor(opts) {
@@ -17,7 +21,7 @@ class Rule extends scheduler.RecurrenceRule {
     const { year, month, date, dayOfWeek, hour, minute, second, tz } = this;
     const cronLike = [year, month, date, dayOfWeek, hour, minute, second, tz].map(e => (e != null ? e : '*')).join(' ');
 
-    return `Rule ${cronLike}`;
+    return `[Rule ${cronLike}]`;
   }
 }
 
@@ -35,7 +39,7 @@ const jobs = [
   {
     rule: new Rule({ hour: 9, minute: 0, tz: 'Europe/Moscow' }),
     fn: async () => {
-      logger.info('switching lights on');
+      logger.info('Switching lights on');
       await Lifx.turnOnFilter({
         filters,
         color,
@@ -46,7 +50,7 @@ const jobs = [
   {
     rule: new Rule({ hour: 11, minute: 0, tz: 'Europe/Moscow' }),
     fn: async () => {
-      logger.info('switching lights off');
+      logger.info('Switching lights off');
       await Lifx.turnOffFilter({
         filters,
         color,
@@ -58,10 +62,11 @@ const jobs = [
 
 (async () => {
   const deviceList = await Lifx.discover();
-  console.log(deviceList.map(e => e.deviceInfo.label));
+  const devices = deviceList.map(e => e.deviceInfo.label);
+  logger.info(`Devices discovered: ${devices.join(', ')}`);
 
   for (const { rule, fn } of jobs) {
-    logger.info(rule.toString());
+    logger.info(`Job registered: ${rule.toString()}`);
     scheduler.scheduleJob(rule, fn);
   }
 
