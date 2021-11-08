@@ -39,7 +39,9 @@ const jobs = [
   {
     rule: new Rule({ hour: 8, minute: 0, tz: 'Europe/Moscow' }),
     fn: async () => {
-      logger.info('Switching lights on');
+      const deviceList = await Lifx.discover();
+      const devices = deviceList.map(e => e.deviceInfo.label);
+      logger.info(`Switching lights ON on: ${devices.join(', ')}`);
       await Lifx.turnOnFilter({
         filters,
         color,
@@ -50,7 +52,9 @@ const jobs = [
   {
     rule: new Rule({ hour: 10, minute: 0, tz: 'Europe/Moscow' }),
     fn: async () => {
-      logger.info('Switching lights off');
+      const deviceList = await Lifx.discover();
+      const devices = deviceList.map(e => e.deviceInfo.label);
+      logger.info(`Switching lights OFF on: ${devices.join(', ')}`);
       await Lifx.turnOffFilter({
         filters,
         color,
@@ -61,10 +65,6 @@ const jobs = [
 ];
 
 (async () => {
-  const deviceList = await Lifx.discover();
-  const devices = deviceList.map(e => e.deviceInfo.label);
-  logger.info(`Devices discovered: ${devices.join(', ')}`);
-
   for (const { rule, fn } of jobs) {
     logger.info(`Job registered: ${rule.toString()}`);
     scheduler.scheduleJob(rule, fn);
