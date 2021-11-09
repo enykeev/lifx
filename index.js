@@ -48,6 +48,16 @@ const jobs = [
         duration,
       });
     },
+    init: async () => {
+      if (!Lifx._initialized) {
+        return await Lifx.init();
+      }
+    },
+    destroy: async () => {
+      if (Lifx._initialized) {
+        return await Lifx.destroy();
+      }
+    },
   },
   {
     rule: new Rule({ hour: 10, minute: 0, tz: 'Europe/Moscow' }),
@@ -61,21 +71,34 @@ const jobs = [
         duration,
       });
     },
+    init: async () => {
+      if (!Lifx._initialized) {
+        return await Lifx.init();
+      }
+    },
+    destroy: async () => {
+      if (Lifx._initialized) {
+        return await Lifx.destroy();
+      }
+    },
   },
 ];
 
 (async () => {
-  for (const { rule, fn } of jobs) {
+  for (const { rule, fn, init } of jobs) {
+    await init();
     logger.info(`Job registered: ${rule.toString()}`);
     scheduler.scheduleJob(rule, fn);
   }
 
   [`SIGINT`, `SIGUSR1`, `SIGUSR2`, `uncaughtException`, `SIGTERM`].forEach(eventType => {
-    process.on(eventType, () => {
+    process.on(eventType, async () => {
       logger.info(`Recieving ${eventType}. Exiting...`);
-      Lifx.destroy();
       for (const job of Object.values(scheduler.scheduledJobs)) {
         job.cancel();
+      }
+      for (const { destroy } of jobs) {
+        await destroy();
       }
     });
   });
