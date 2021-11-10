@@ -37,7 +37,7 @@ const duration = 5000;
 
 const jobs = [
   {
-    rule: new Rule({ hour: 8, minute: 0, tz: 'Europe/Moscow' }),
+    rule: new Rule({ hour: 9, minute: 0, tz: 'Europe/Moscow' }),
     fn: async () => {
       const deviceList = await Lifx.discover();
       const devices = deviceList.map(e => e.deviceInfo.label);
@@ -60,7 +60,7 @@ const jobs = [
     },
   },
   {
-    rule: new Rule({ hour: 10, minute: 0, tz: 'Europe/Moscow' }),
+    rule: new Rule({ hour: 11, minute: 0, tz: 'Europe/Moscow' }),
     fn: async () => {
       const deviceList = await Lifx.discover();
       const devices = deviceList.map(e => e.deviceInfo.label);
